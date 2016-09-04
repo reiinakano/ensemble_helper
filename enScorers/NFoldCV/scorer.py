@@ -30,7 +30,7 @@ def score(model, feature_set, labels, N=3, calc_acc=True, calc_prc=True, calc_re
             f1.append(f1_score(y_test, prediction, pos_label=None, average='weighted'))
     metrics = {}
     if calc_acc:
-            metrics["accuracy"] = np.mean(accuracy)
+        metrics["accuracy"] = np.mean(accuracy)
     if calc_prc:
         metrics["precision"] = np.mean(precision)
     if calc_rec:
