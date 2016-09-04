@@ -1,0 +1,2 @@
+Stratified k-fold is a variation of k-fold which returns stratified folds: each set contains approximately the same percentage of samples of each target class as the complete set.
+Description taken from: http://scikit-learn.org/stable/modules/cross_validation.html
