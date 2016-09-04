@@ -1,0 +1,8 @@
+Logistic regression, despite its name, is a linear model for classification rather than regression. Logistic regression is also known in the literature as logit regression, maximum-entropy classification (MaxEnt) or the log-linear classifier. In this model, the probabilities describing the possible outcomes of a single trial are modeled using a logistic function.
+The solvers implemented in the class LogisticRegression are “liblinear” (which is a wrapper around the C++ library, LIBLINEAR), “newton-cg”, “lbfgs” and “sag”.
+The “lbfgs” and “newton-cg” solvers only support L2 penalization and are found to converge faster for some high dimensional data. L1 penalization yields sparse predicting weights.
+In a nutshell, one may choose the solver with the following rules:
+Small dataset or L1 penalty -> “liblinear”
+Multinomial loss -> “lbfgs” or "newton-cg”
+Large dataset -> “sag”
+Description taken from: http://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
