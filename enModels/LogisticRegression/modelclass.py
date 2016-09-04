@@ -1,6 +1,11 @@
 # Every modelclass.py file must contain its own ModelClass class.
-# As of v0, ModelClass must implement the methods _train(), _predict(), _save_internals(), and static method _restore_model()
-# Other methods (e.g. predict_proba()) may be added to provide better functionality for various scoring methods.
+# As of v0, ModelClass must implement the methods _train(), _predict(), _save_internals(), and static method
+# _restore_model(). Other methods (e.g. predict_proba()) may be added to provide better functionality for
+# various scoring methods.
+
+# NOTES ABOUT THIS PARTICULAR MODEL
+# This model contains a Logistic Regression classifier implemented using the sklearn library.
+
 class ModelClass:
     # __init__() must take as parameters all hyperparameters required for properly implementing train() and predict()
     def __init__(self, penalty, dual, C, fit_intercept, intercept_scaling, class_weight, max_iter, solver, tol, multi_class, n_jobs):

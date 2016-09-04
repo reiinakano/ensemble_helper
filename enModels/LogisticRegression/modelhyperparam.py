@@ -1,3 +1,5 @@
+# The modelhyperparam.py file must contain the dictionary "hyperparam" and present the various hyperparameters in this
+# model. If type is string, must include the entry "choices" with a list of possible strings.
 hyperparam = {"penalty": {"description": "Used to specify the norm used in the penalization. The newton-cg and lbfgs "
                                          "solvers support only l2 penalties.",
                           "type": "str",
