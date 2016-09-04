@@ -2,16 +2,16 @@
 # the models of a modelclass.py file, a feature set, the corresponding correct labels of the feature set, and the set of
 # "hyperparameters" of the scoring function. It then returns a dictionary containing the model's scores for various
 # performance metrics e.g. accuracy, precision, recall, etc.
-from sklearn.cross_validation import StratifiedKFold
+from sklearn.cross_validation import KFold
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import numpy as np
 
 
 # NOTES ABOUT THIS PARTICULAR SCORER
-# This scorer uses stratified N-fold cross validation and returns the averaged performance metrics of all N folds
+# This scorer randomly chooses N-fold splits and returns the averaged performance metrics of all N folds
 def score(model, feature_set, labels, N=3, shuffle=False, calc_acc=True, calc_prc=True, calc_rec=True, calc_f1=True, calc_cm=True):
     assert len(labels) >= N
-    skf = StratifiedKFold(labels, n_folds=N, shuffle=shuffle)
+    skf = KFold(len(labels), n_folds=N, shuffle=shuffle)
     accuracy = []
     precision = []
     recall = []

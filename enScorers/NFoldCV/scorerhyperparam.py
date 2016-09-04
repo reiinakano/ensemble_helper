@@ -2,7 +2,7 @@
 # scorer. If type is string, must include the entry "choices" with a list of possible strings.
 # The modelhyperparam.py file must contain the dictionary "hyperparam" and present the various hyperparameters in this
 # model. If type is string, must include the entry "choices" with a list of possible strings.
-hyperparam = {"N": {"description": "Used to designate number of stratified folds used for stratified N-fold CV.",
+hyperparam = {"N": {"description": "Used to designate number of folds used for N-fold CV.",
                     "type": "int",
                     "default": 3
                     },
