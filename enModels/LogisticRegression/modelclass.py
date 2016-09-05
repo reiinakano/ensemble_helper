@@ -5,11 +5,12 @@
 
 # NOTES ABOUT THIS PARTICULAR MODEL
 # This model contains a Logistic Regression classifier implemented using the sklearn library.
+from sklearn.linear_model import LogisticRegression
+
 
 class ModelClass:
     # __init__() must take as parameters all hyperparameters required for properly implementing train() and predict()
     def __init__(self, penalty, dual, C, fit_intercept, intercept_scaling, class_weight, max_iter, solver, tol, multi_class, n_jobs):
-        from sklearn.linear_model import LogisticRegression
         self.model = LogisticRegression(penalty=penalty, dual=dual, C=C, fit_intercept=fit_intercept,
                                         intercept_scaling=intercept_scaling, class_weight=class_weight,
                                         max_iter=max_iter, solver=solver, tol=tol, multi_class=multi_class,
