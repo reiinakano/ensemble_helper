@@ -2,6 +2,7 @@
 # the models of a modelclass.py file, a feature set, the corresponding correct labels of the feature set, and the set of
 # "hyperparameters" of the scoring function. It then returns a dictionary containing the model's scores for various
 # performance metrics e.g. accuracy, precision, recall, etc.
+# It must also include the function scorer_name(), returning the name of the scoring method used.
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import numpy as np
@@ -40,3 +41,7 @@ def score(model, feature_set, labels, N=3, shuffle=False, calc_acc=True, calc_pr
     if calc_cm:
         metrics["confusion_matrix"] = confusion_matrix(y_test, prediction)
     return metrics
+
+
+def scorer_name():
+    return "Stratified N-fold Cross Validation"

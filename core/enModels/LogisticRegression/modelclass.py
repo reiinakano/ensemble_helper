@@ -1,6 +1,6 @@
 # Every modelclass.py file must contain its own ModelClass class.
-# As of v0, ModelClass must implement the methods train(), predict(), save_internals(), and static method
-# restore_model(). Other methods (e.g. predict_proba()) may be added to provide better functionality for
+# As of v0, ModelClass must implement the methods train(), predict(), save_internals(), and static methods
+# restore_model() and model_name(). Other methods (e.g. predict_proba()) may be added to provide better functionality for
 # various scoring methods.
 
 # NOTES ABOUT THIS PARTICULAR MODEL
@@ -52,3 +52,8 @@ class ModelClass:
             return joblib.load(filename)
         except:
             return None
+
+    # This static method simply returns the name of this model.
+    @staticmethod
+    def model_name():
+        return "Logistic Regression"
