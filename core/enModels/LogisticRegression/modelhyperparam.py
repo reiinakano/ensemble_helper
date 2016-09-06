@@ -22,7 +22,7 @@ hyperparam = {"penalty": {"description": "Used to specify the norm used in the p
               "fit_intercept": {"description": "Specifies if a constant (a.k.a. bias or intercept) should be added to "
                                                "the decision function.",
                                 "type": "bool",
-                                "default": True
+                                "default": False
                                 },
 
               "intercept_scaling": {"description": "Useful only if solver is liblinear. When self.fit_intercept is "

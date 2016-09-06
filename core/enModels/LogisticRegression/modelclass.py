@@ -35,6 +35,7 @@ class ModelClass:
     # The method must be able to save all information required to fully restore a particular ModelClass instance when
     # calling the corresponding restore_model() method.
     # If successful, it returns True. Else, it returns False
+    # This might stay unused for a while. Might as well have an efficient way of storing them though, just in case.
     def save_internals(self, filename):
         try:
             from sklearn.externals import joblib
@@ -45,6 +46,7 @@ class ModelClass:
 
     # This static method _restore_model() must take a filename and return the original ModelClass instance that was
     # saved there using the save_internals() method.
+    # This might stay unused for a while. Might as well have an efficient way of storing them though, just in case.
     @staticmethod
     def restore_model(filename):
         try:

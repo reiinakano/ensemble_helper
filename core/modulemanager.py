@@ -44,6 +44,32 @@ class ModuleManager:
             available_scorers[scorer_name]["hyperparam"] = scorer_hyperparam
         return available_scorers
 
+    # Returns instance of model with name "model_name" and initialized with dictionary "hyperparams"
+    def get_model(self, model_name, hyperparams):
+        try:
+            model = self.available_models[model_name]["class"](**hyperparams)
+        except KeyError:
+            print "Model " + model_name + " does not exist."
+            return None
+        return model
+
+    # Returns model hyperparameters dictionary of model_name
+    def get_model_hyperparams(self, model_name):
+        try:
+            hyperparam = self.available_models[model_name]["hyperparam"]
+        except KeyError:
+            print "Model " + model_name + " does not exist."
+            return None
+        return hyperparam
+
+    def get_scorer_func(self, scorer_name):
+        try:
+            scorer = self.available_scorers[scorer_name]["score"]
+        except KeyError:
+            print "Scorer " + scorer_name + " does not exist."
+            return None
+        return scorer
+
 
 if __name__ == "__main__":
     print ['./enScorers/' + f for f in os.listdir('./enScorers') if os.path.isdir('./enScorers/' + f)]
@@ -58,3 +84,7 @@ if __name__ == "__main__":
         print key
         print value["score"]
         print value["hyperparam"]
+    hyperparams = {}
+    for key, value in m.get_model_hyperparams("Logistic Regression").iteritems():
+        hyperparams[key] = value["default"]
+    print m.get_model("Logistic Regression", hyperparams)
