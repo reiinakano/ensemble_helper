@@ -1,4 +1,4 @@
-# This file contains the class to contain a single model version and all its metadata.
+# This file contains the class to contain a single model version with all its metadata.
 # The class contains methods to score, train, and predict the model "model_name".
 import datetime
 
