@@ -1,4 +1,6 @@
-# This file contains the class to contain a single model version and its metadata.
+# This file contains the class to contain a single model version and all its metadata.
+# The class contains methods to score, train, and predict the model "model_name".
+import datetime
 
 
 class ModelVersion:
@@ -18,6 +20,7 @@ class ModelVersion:
         self.scoring_runtime = None  # int in seconds (or None) indicating how long it took for model to be scored
         self.to_be_saved = True  # Boolean indicating whether a trained model should be saved together with the project
         self.trained_model = None  # Actual trained model instance
+        self.user_notes = ""  # This is a string to save user notes for the model version e.g. "This model rocks!"
 
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in scores.
@@ -32,6 +35,7 @@ class ModelVersion:
         model = self.module_mgr.get_model(self.model_name, self.model_hyperparam)
         if model.train(self.feature_set, self.labels):
             self.trained_model = model
+            self.trained_last = datetime.datetime.today()
         else:
             print "Training failed"
 
@@ -42,3 +46,7 @@ class ModelVersion:
             return None
         else:
             return self.trained_model.predict(feature_set)
+
+
+if __name__ == '__main__':
+    pass

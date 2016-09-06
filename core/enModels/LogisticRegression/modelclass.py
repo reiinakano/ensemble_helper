@@ -1,7 +1,7 @@
 # Every modelclass.py file must contain its own ModelClass class.
 # As of v0, ModelClass must implement the methods train(), predict(), save_internals(), and static methods
-# restore_model() and model_name(). Other methods (e.g. predict_proba()) may be added to provide better functionality for
-# various scoring methods.
+# restore_model() and model_name(). Other methods (e.g. predict_proba()) may be added to provide better functionality
+# for various scoring methods.
 
 # NOTES ABOUT THIS PARTICULAR MODEL
 # This model contains a Logistic Regression classifier implemented using the sklearn library.
@@ -18,6 +18,9 @@ class ModelClass:
 
     # train() must take as parameters the feature set and correct labels to use as the training data.
     # If successful, it returns True. Else, it returns False
+    # IMPORTANT: If successful, the instance of ModelClass must retain its trained state so it can predict. This is the
+    # default case for training models using the fit() method of the sklearn library but might not be if implementing
+    # models from other libraries.
     def train(self, feature_set, labels):
         try:
             self.model.fit(feature_set, labels)
