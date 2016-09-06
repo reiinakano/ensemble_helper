@@ -1,6 +1,7 @@
 # This file contains the class to contain a single model version with all its metadata.
 # The class contains methods to score, train, and predict the model "model_name".
 import datetime
+import time
 
 
 class ModelVersion:
@@ -16,24 +17,32 @@ class ModelVersion:
         self.module_mgr = module_mgr
         self.trained_last = None  # This is a datetime object (or None) indicating when the model was last trained
         self.scores = {}  # This is a dictionary containing scores obtained by the model e.g. accuracy, f1 score
-        self.runtime = None  # This is a int in seconds (or None) indicating how long it took the model to be trained
-        self.scoring_runtime = None  # int in seconds (or None) indicating how long it took for model to be scored
+        self.runtime = None  # This is a float in seconds (or None) indicating how long it took the model to be trained
+        self.scoring_runtime = None  # float in seconds (or None) indicating how long it took for model to be scored
         self.to_be_saved = True  # Boolean indicating whether a trained model should be saved together with the project
         self.trained_model = None  # Actual trained model instance
         self.user_notes = ""  # This is a string to save user notes for the model version e.g. "This model rocks!"
 
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
-    # model_hyperparam. The resulting scores from the scoring function are stored in scores.
+    # model_hyperparam. The resulting scores from the scoring function are stored in scores as a dict.
     def score(self):
         model = self.module_mgr.get_model(self.model_name, self.model_hyperparam)
         scorer_function = self.module_mgr.get_scorer_func(self.scorer_name)
+
+        start_time = time.time()
         scores = scorer_function(model, self.feature_set, self.labels, **self.scorer_hyperparam)
+        self.scoring_runtime = time.time() - start_time
+
         self.scores = scores
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
         model = self.module_mgr.get_model(self.model_name, self.model_hyperparam)
+
+        start_time = time.time()
         if model.train(self.feature_set, self.labels):
+            self.runtime = time.time() - start_time
+
             self.trained_model = model
             self.trained_last = datetime.datetime.today()
         else:
@@ -66,3 +75,5 @@ if __name__ == '__main__':
     my_class.train()
     print my_class.trained_model
     print my_class.trained_last
+    print my_class.runtime
+    print my_class.scoring_runtime
