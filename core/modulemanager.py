@@ -70,6 +70,14 @@ class ModuleManager:
             return None
         return scorer
 
+    def get_scorer_hyperparams(self, scorer_name):
+        try:
+            hyperparam = self.available_scorers[scorer_name]["hyperparam"]
+        except KeyError:
+            print "Scorer " + scorer_name + " does not exist."
+            return None
+        return hyperparam
+
 
 if __name__ == "__main__":
     print ['./enScorers/' + f for f in os.listdir('./enScorers') if os.path.isdir('./enScorers/' + f)]
