@@ -6,36 +6,55 @@ class ModuleManager:
     # To initialize ModuleManager, it must crawl through the directories enModels and enScorers to determine which
     # models and scoring methods are correctly configured and available for use.
     def __init__(self):
-        self.available_models = self._get_available_models()
-        self.available_scorers = self._get_available_scorers()
+        self.available_models, self.available_scorers = self._get_available_models(), self._get_available_scorers()
 
+    # This function should only be used while initializing the module manager class.
+    # It parses the enModels folder, looks for correctly configured models, and adds them to the available_models
+    # dictionary. Each entry in the dictionary is accessed by the model name. The corresponding value is another
+    # dictionary containing the particular model's class and hyperparameters.
     def _get_available_models(self):
         available_models = {}
         for dir_name in [f for f in os.listdir('./enModels') if os.path.isdir('./enModels/' + f)]:
-            # insert instructions to test if path is a legitimate model package
-            mod_name = 'enModels.' + dir_name + '.modelclass'
-            imported_module = importlib.import_module(mod_name)
-            my_class = getattr(imported_module, "ModelClass")
-            model_name = my_class.model_name()
-
-
+            # insert instructions to test if path is a legitimate model package. If it is, add it to available_models.
+            imported_module = importlib.import_module('enModels.' + dir_name + '.modelclass')  # Import module
+            model_class = imported_module.ModelClass  # get class ModelClass from imported module
+            model_name = model_class.model_name()  # get name of model from ModelClass class's static method model_name()
+            imported_module = importlib.import_module('enModels.' + dir_name + '.modelhyperparam')  # Import hyperparam module
+            model_hyperparam = imported_module.hyperparam  # Get model hyperparams
+            available_models[model_name] = {}  # add model name to dictionary. Initialize with another dictionary.
+            available_models[model_name]["hyperparam"] = model_hyperparam  # store hyperparams of model in dictionary.
+            available_models[model_name]["class"] = model_class  # store class in model name
         return available_models
 
+    # This function should only be used while initializing the module manager class.
+    # It parses the enScorers folder, looks for correctly configured scorers, and adds them to the available_scorers
+    # dictionary. Each entry in the dictionary is accessed by the scorer name. The corresponding value is another
+    # dictionary containing the particular scorer's score function and hyperparameters.
     def _get_available_scorers(self):
         available_scorers = {}
-
+        for dir_name in [f for f in os.listdir('./enScorers') if os.path.isdir('./enScorers/' + f)]:
+            # Insert instruction to test if path is a legitimate scorer package. If it is, add it to available models.
+            imported_module = importlib.import_module('enScorers.' + dir_name + '.scorer')  # Import module
+            scorer_function = imported_module.score
+            scorer_name = imported_module.scorer_name()
+            imported_module = importlib.import_module('enScorers.' + dir_name + '.scorerhyperparam')  # Import scorer hyperparam module
+            scorer_hyperparam = imported_module.hyperparam
+            available_scorers[scorer_name] = {}
+            available_scorers[scorer_name]["score"] = scorer_function
+            available_scorers[scorer_name]["hyperparam"] = scorer_hyperparam
         return available_scorers
 
 
 if __name__ == "__main__":
     print ['./enScorers/' + f for f in os.listdir('./enScorers') if os.path.isdir('./enScorers/' + f)]
     print ['./enModels/' + f for f in os.listdir('./enModels') if os.path.isdir('./enModels/' + f)]
-    for dir_name in [f for f in os.listdir('./enModels') if os.path.isdir('./enModels/' + f)]:
-        # insert instructions to test if path is a legitimate model package
-        mod_name = 'enModels.' + dir_name + '.modelclass'
-        print mod_name
-        imported_module = importlib.import_module(mod_name)
-        print imported_module
-        my_class = getattr(imported_module, "ModelClass")
-        print my_class
-        print my_class.model_name()
+    m = ModuleManager()
+    for key, value in m.available_models.iteritems():
+        print key
+        print value["class"]
+        print value["hyperparam"]
+    print ""
+    for key, value in m.available_scorers.iteritems():
+        print key
+        print value["score"]
+        print value["hyperparam"]
