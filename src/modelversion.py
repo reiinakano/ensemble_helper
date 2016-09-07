@@ -14,8 +14,6 @@ class ModelVersion:
         self.scorer_func = module_mgr.get_scorer_func(scorer_name)  # This is the actual function object of the scorer.
         self.scorer_hyperparam = scorer_hyperparam  # These are the hyperparameters (dict) used for the scorer.
         self.model_hyperparam = model_hyperparam  # These are the hyperparameters (dict) used for the model.
-        # This is the module manager passed to ModelVersion and is used for interacting
-        # with the particular model and scorer indicated by model_name and scorer_name.
         self.trained_last = None  # This is a datetime object (or None) indicating when the model was last trained
         self.scores = {}  # This is a dictionary containing scores obtained by the model e.g. accuracy, f1 score
         self.runtime = None  # This is a float in seconds (or None) indicating how long it took the model to be trained

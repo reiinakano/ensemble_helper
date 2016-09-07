@@ -3,7 +3,7 @@
 
 
 class ParameterSpinner:
-    def __init__(self, hyperdict=None):
+    def __init__(self, hyperdict):
         self.hyperdict = hyperdict
 
     # Returns the list of hyperparameter names to the dictionary
@@ -15,6 +15,14 @@ class ParameterSpinner:
     @staticmethod
     def use_default_values(hyperdict):
         return {key: value["default"] for key, value in hyperdict.iteritems()}
+
+    # This function is very similar in function to the exhaustive grid search using sklearn's GridSearchCV.
+    # "params" is a list of dictionaries representing various grids to be generated.
+    # The function returns an iterator that yields a valid hyperparam dictionary per iteration.
+    @staticmethod
+    def exhaustive_search_iterator(hyperdict, param_grid):
+        for grid in param_grid:
+
 
 
 if __name__ == "__main__":
