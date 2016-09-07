@@ -1,0 +1,1 @@
+This scorer is a combination of NFoldCV and StratifiedNFoldCV. Which folding mechanism to use now solely depends on the additional parameter "folds". I see little reason for using either NFoldCV or StratifiedNFoldCV after this.

@@ -63,12 +63,12 @@ if __name__ == '__main__':
     m = modulemanager.ModuleManager()
     hyperparams_model = {key: value["default"] for key, value in m.get_model_hyperparams("Logistic Regression").iteritems()}
     print hyperparams_model
-    hyperparams_scorer = {key: value["default"] for key, value in m.get_scorer_hyperparams("Stratified N-fold Cross Validation").iteritems()}
+    hyperparams_scorer = {key: value["default"] for key, value in m.get_scorer_hyperparams("General Cross Validation").iteritems()}
     print hyperparams_scorer
     iris = datasets.load_iris()
     X = iris.data
     y = iris.target
-    my_class = ModelVersion(X, y, "Stratified N-fold Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
+    my_class = ModelVersion(X, y, "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
     my_class.score()
     print my_class.scores
     print my_class.trained_model
