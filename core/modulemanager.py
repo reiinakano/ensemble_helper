@@ -53,6 +53,15 @@ class ModuleManager:
             return None
         return model
 
+    # Returns the class referred to by "model_name"
+    def get_model_class(self, model_name):
+        try:
+            model_class = self.available_models[model_name]["class"]
+        except KeyError:
+            print "Model " + model_name + " does not exist."
+            return None
+        return model_class
+
     # Returns model hyperparameters dictionary of model_name
     def get_model_hyperparams(self, model_name):
         try:

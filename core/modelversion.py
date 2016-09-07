@@ -10,11 +10,12 @@ class ModelVersion:
         self.labels = labels  # Corresponding correct labels for feature set
         self.scorer_name = scorer_name  # This is a string corresponding to the name of the scorer
         self.model_name = model_name  # This is a string corresponding to the name of the model
+        self.model_class = module_mgr.get_model_class(model_name)  # This is the class of the model (NOT an instance)
+        self.scorer_func = module_mgr.get_scorer_func(scorer_name)  # This is the actual function object of the scorer.
         self.scorer_hyperparam = scorer_hyperparam  # These are the hyperparameters (dict) used for the scorer.
         self.model_hyperparam = model_hyperparam  # These are the hyperparameters (dict) used for the model.
         # This is the module manager passed to ModelVersion and is used for interacting
         # with the particular model and scorer indicated by model_name and scorer_name.
-        self.module_mgr = module_mgr
         self.trained_last = None  # This is a datetime object (or None) indicating when the model was last trained
         self.scores = {}  # This is a dictionary containing scores obtained by the model e.g. accuracy, f1 score
         self.runtime = None  # This is a float in seconds (or None) indicating how long it took the model to be trained
@@ -26,19 +27,15 @@ class ModelVersion:
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in scores as a dict.
     def score(self):
-        model = self.module_mgr.get_model(self.model_name, self.model_hyperparam)
-        scorer_function = self.module_mgr.get_scorer_func(self.scorer_name)
-
         start_time = time.time()
-        scores = scorer_function(model, self.feature_set, self.labels, **self.scorer_hyperparam)
+        scores = self.scorer_func(self.model_class(**self.model_hyperparam), self.feature_set, self.labels, **self.scorer_hyperparam)
         self.scoring_runtime = time.time() - start_time
 
         self.scores = scores
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
-        model = self.module_mgr.get_model(self.model_name, self.model_hyperparam)
-
+        model = self.model_class(**self.model_hyperparam)
         start_time = time.time()
         if model.train(self.feature_set, self.labels):
             self.runtime = time.time() - start_time
@@ -59,11 +56,11 @@ class ModelVersion:
 
 if __name__ == '__main__':
     from sklearn import datasets
-    import modulemanager
+    import modulemanager, parameterspinner
     m = modulemanager.ModuleManager()
-    hyperparams_model = {key: value["default"] for key, value in m.get_model_hyperparams("Logistic Regression").iteritems()}
+    hyperparams_model = parameterspinner.ParameterSpinner.use_default_values(m.get_model_hyperparams("Logistic Regression"))
     print hyperparams_model
-    hyperparams_scorer = {key: value["default"] for key, value in m.get_scorer_hyperparams("General Cross Validation").iteritems()}
+    hyperparams_scorer = parameterspinner.ParameterSpinner.use_default_values(m.get_scorer_hyperparams("General Cross Validation"))
     print hyperparams_scorer
     iris = datasets.load_iris()
     X = iris.data
