@@ -25,14 +25,21 @@ class ParameterSpinner:
     def exhaustive_search_iterator(hyperdict, param_grid):
         if isinstance(param_grid, Mapping):
             param_grid = [param_grid]
-        for grid in param_grid:
-            pass
+        for argument_dict in ParameterGrid(param_grid):
+            default = ParameterSpinner.use_default_values(hyperdict)
+            for key, value in argument_dict.iteritems():
+                if key not in default:
+                    raise KeyError("Parameter '{}' not in dictionary.".format(key))
+                default[key] = value
+            yield default
 
 
 if __name__ == "__main__":
     import modulemanager
     m = modulemanager.ModuleManager()
     hyperdictt = m.get_model_hyperparams("Logistic Regression")
-    print ParameterSpinner.use_default_values(hyperdictt)
-    for g in ParameterGrid([{"d":[2,3], "w":[2,1,3,3]},{"C":[2, 4], "f":[2, "str"]}]):
-        print g
+    print "default: ", ParameterSpinner.use_default_values(hyperdictt)
+    param_grid = [{"C": [2, 3], "n_jobs": [2, 1, 3, -1]},
+                  {"C": [2, 4], "penalty": ["l1", "l2"]}]
+    for my_dict in ParameterSpinner.exhaustive_search_iterator(hyperdictt, param_grid):
+        print my_dict
