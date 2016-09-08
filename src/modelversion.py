@@ -20,6 +20,7 @@ class ModelVersion:
         self.scoring_runtime = None  # float in seconds (or None) indicating how long it took for model to be scored
         self.to_be_saved = True  # Boolean indicating whether a trained model should be saved together with the project
         self.trained_model = None  # Actual trained model instance
+        self.scored = False  # Boolean indicating whether the model version has been scored yet.
         self.user_notes = ""  # This is a string to save user notes for the model version e.g. "This model rocks!"
 
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
@@ -29,6 +30,7 @@ class ModelVersion:
         scores = self.scorer_func(self.model_class(**self.model_hyperparam), self.feature_set, self.labels, **self.scorer_hyperparam)
         self.scoring_runtime = time.time() - start_time
 
+        self.scored = True
         self.scores = scores
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model

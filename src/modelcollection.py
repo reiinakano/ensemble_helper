@@ -19,19 +19,40 @@ class ModelCollection:
         dict_key.extend([value for key, value in sorted(model_version.scorer_hyperparam.iteritems())])
         dict_key = tuple(dict_key)
         if dict_key in self.model_versions:
+            # print "already here!", dict_key
             pass
         else:
             self.model_versions[dict_key] = model_version
 
     # This method generates a valid model based on the given feature set, scorer, and hyperparameters (model or scorer)
     # and adds it to self.model_versions if it doesn't already exist there.
-    def generate_and_add_model(self, feature_set, labels, scorer_name, hyperparams_scorer, hyperparams_model):
-        new_model = modelversion.ModelVersion(feature_set, labels, scorer_name, self.model_name, hyperparams_scorer, hyperparams_model, self.module_mgr)
+    def generate_and_add_model(self, feature_set, labels, scorer_name, scorer_hyperparam, model_hyperparam):
+        new_model = modelversion.ModelVersion(feature_set, labels, scorer_name, self.model_name, scorer_hyperparam, model_hyperparam, self.module_mgr)
         self._add_model_version_to_collection(new_model)
+
+    # This method uses param_grid to automatically generate and add models that are the result of the combination of
+    # the parameters from param_grid. Note that this method assumes that the feature set, scorer, and scorer
+    # hyperparameters passed to this method do not change throughout the exhaustive grid search. Therefore, this method
+    # is a grid search only changing the model hyperparameters.
+    def generate_models_from_grid_hyperparam(self, feature_set, labels, scorer_name, scorer_hyperparam, param_grid):
+        hyperparam_info_dict = self.module_mgr.get_model_hyperparams(self.model_name)
+        for model_hyperparam in parameterspinner.ParameterSpinner.exhaustive_search_iterator(hyperparam_info_dict, param_grid):
+            self.generate_and_add_model(feature_set, labels, scorer_name, scorer_hyperparam, model_hyperparam)
+
+    # This method calculates a score for all unscored model versions in self.model_versions
+    # Support for parallel processing still in the works
+    def score_all_models(self):
+        for key, model_version in sorted(self.model_versions.iteritems()):
+            if not model_version.scored:
+                try:
+                    model_version.score()
+                    # print model_version.scores["accuracy"], model_version.model_hyperparam["C"], model_version.model_hyperparam["penalty"]
+                except Exception as e:
+                    print e
 
 
 if __name__ == "__main__":
-    import modulemanager, parameterspinner
+    import modulemanager
     from sklearn import datasets
     m = modulemanager.ModuleManager()
     hyperparams_model = parameterspinner.ParameterSpinner.use_default_values(m.get_model_hyperparams("Logistic Regression"))
@@ -40,5 +61,9 @@ if __name__ == "__main__":
     X = iris.data
     y = iris.target
     my_collection = ModelCollection("Logistic Regression", m)
-    my_collection.generate_and_add_model(X, y, "General Cross Validation", hyperparams_scorer, hyperparams_model)
-    print my_collection.model_versions
+    param_grid = [{"C": [0.01, 0.1, 1.0, 10.0, 100.0], "n_jobs": [1, -1]},
+                  {"C": [0.00001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0], "penalty": ["l1", "l2"]}]
+    my_collection.generate_models_from_grid_hyperparam(X, y, "General Cross Validation", hyperparams_scorer, param_grid)
+    for key, value in sorted(my_collection.model_versions.iteritems()):
+        print key, ":", value
+    my_collection.score_all_models()
