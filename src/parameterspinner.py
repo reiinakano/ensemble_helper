@@ -18,6 +18,18 @@ class ParameterSpinner:
     def use_default_values(hyperdict):
         return {key: value["default"] for key, value in hyperdict.iteritems()}
 
+    # This method takes the hyperdict AND another dictionary argument_dict.
+    # argument_dict is a dictionary containing key-value pairs oin the form hyperparameter: hyperparameter_value
+    # The method returns a valid hyperparameter dictionary.
+    @staticmethod
+    def change_default(hyperdict, argument_dict):
+        default = ParameterSpinner.use_default_values(hyperdict)
+        for key, value in argument_dict.iteritems():
+            if key not in default:
+                raise KeyError("Parameter '{}' not in dictionary.".format(key))
+            default[key] = value
+        return default
+
     # This function is pretty much the exhaustive grid search using sklearn's GridSearchCV.
     # "params" is a list of dictionaries representing various grids to be generated.
     # The function returns an iterator that yields a valid hyperparam dictionary per iteration.
@@ -26,13 +38,7 @@ class ParameterSpinner:
         if isinstance(param_grid, Mapping):
             param_grid = [param_grid]
         for argument_dict in ParameterGrid(param_grid):
-            default = ParameterSpinner.use_default_values(hyperdict)
-            for key, value in argument_dict.iteritems():
-                if key not in default:
-                    raise KeyError("Parameter '{}' not in dictionary.".format(key))
-                default[key] = value
-            yield default
-
+            yield ParameterSpinner.change_default(hyperdict, argument_dict)
 
 if __name__ == "__main__":
     import modulemanager
