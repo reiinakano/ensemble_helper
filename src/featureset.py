@@ -34,4 +34,10 @@ class FeatureSet:
 
 
 if __name__ == "__main__":
-    pass
+    import parentset
+    from sklearn import datasets
+    iris = datasets.load_iris()
+    X = iris.data
+    y = iris.target
+    parent_set = parentset.ParentSet(X, y)
+    a = FeatureSet(parent_set, range(parent_set.features.shape[1]))
