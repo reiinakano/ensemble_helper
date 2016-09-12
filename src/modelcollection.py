@@ -1,6 +1,7 @@
 # This module contains the class for easily creating and managing differently trained versions of the same model.
 import modelversion
 import parameterspinner
+import multiprocessing
 
 
 class ModelCollection:
@@ -50,6 +51,25 @@ class ModelCollection:
                 except Exception as e:
                     print e
 
+    # Experimental method for calculating the scores of all the models in self.model_versions in parallel
+    def score_all_models_parallel(self):
+        my_pool = multiprocessing.Pool()
+        iterable = [model_version for key, model_version in sorted(self.model_versions.iteritems())]
+        new_model_versions = my_pool.map(score_parallel, iterable)
+        for new_model, key in zip(new_model_versions, sorted(self.model_versions)):
+            if new_model is not None:
+                self.model_versions[key] = new_model
+
+
+def score_parallel(modelversionpassed):
+    if not modelversionpassed.scored:
+        try:
+            modelversionpassed.score()
+        except Exception as e:
+            print e
+            return None
+    return modelversionpassed
+
 
 if __name__ == "__main__":
     import modulemanager
@@ -70,4 +90,6 @@ if __name__ == "__main__":
     my_collection.generate_models_from_grid_hyperparam(feature_set, "General Cross Validation", hyperparams_scorer, param_grid)
     for key, value in sorted(my_collection.model_versions.iteritems()):
         print key, ":", value
-    my_collection.score_all_models()
+    my_collection.score_all_models_parallel()
+    for key, model_version in sorted(my_collection.model_versions.iteritems()):
+        print model_version.scores["accuracy"], model_version.model_hyperparam["C"], model_version.model_hyperparam["penalty"]
