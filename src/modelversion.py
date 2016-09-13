@@ -5,14 +5,12 @@ import time
 
 
 class ModelVersion:
-    def __init__(self, parent_set, feature_extractor,  scorer_name, model_name, scorer_hyperparam, model_hyperparam, module_mgr):
+    def __init__(self, parent_set, feature_extractor, model_name, model_hyperparam, module_mgr):
         self.parent_set = parent_set
         self.feature_extractor = feature_extractor  # This is a feature set
-        self.scorer_name = scorer_name  # This is a string corresponding to the name of the scorer
+        self.module_mgr = module_mgr  # The module manager is stored here as well.
         self.model_name = model_name  # This is a string corresponding to the name of the model
         self.model_class = module_mgr.get_model_class(model_name)  # This is the class of the model (NOT an instance)
-        self.scorer_func = module_mgr.get_scorer_func(scorer_name)  # This is the actual function object of the scorer.
-        self.scorer_hyperparam = scorer_hyperparam  # These are the hyperparameters (dict) used for the scorer.
         self.model_hyperparam = model_hyperparam  # These are the hyperparameters (dict) used for the model.
         self.trained_last = None  # This is a datetime object (or None) indicating when the model was last trained
         self.scores = {}  # This is a dictionary containing scores obtained by the model e.g. accuracy, f1 score
@@ -24,17 +22,19 @@ class ModelVersion:
         self.user_notes = ""  # This is a string to save user notes for the model version e.g. "This model rocks!"
 
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
-    # model_hyperparam. The resulting scores from the scoring function are stored in scores as a dict.
-    def score(self):
+    # model_hyperparam. The resulting scores from the scoring function are stored in self.scores[scorer_name] as a dict.
+    def score(self, scorer_name, scorer_hyperparam):
         features = self.feature_extractor.get_features_array(self.parent_set)
         labels = self.feature_extractor.get_labels_array(self.parent_set)
+        scorer_func = self.module_mgr.get_scorer_func(scorer_name)
 
         start_time = time.time()
-        scores = self.scorer_func(self.model_class(**self.model_hyperparam), features, labels, **self.scorer_hyperparam)
+        scores = scorer_func(self.model_class(**self.model_hyperparam), features, labels, **scorer_hyperparam)
         self.scoring_runtime = time.time() - start_time
 
         self.scored = True
-        self.scores = scores
+        key = (scorer_name, tuple([value for key, value in sorted(scorer_hyperparam.iteritems())]))
+        self.scores[key] = scores
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     X = iris.data
     y = iris.target
     parent_set = parentset.ParentSet(X, y)
-    my_class = ModelVersion(parent_set, featureextractor.FeatureExtractor(), "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
-    my_class.score()
+    my_class = ModelVersion(parent_set, featureextractor.FeatureExtractor(), "Logistic Regression", hyperparams_model, m)
+    my_class.score("General Cross Validation", hyperparams_scorer)
     print my_class.scores
     print my_class.trained_model
     my_class.train()
