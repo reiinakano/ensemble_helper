@@ -1,6 +1,6 @@
 # This module contains the ParentSet class. As of now, it contains two attributes, features and labels, which contain
 # the, uhh, features and labels.
-import featureset
+import featureextractor
 
 
 class ParentSet:

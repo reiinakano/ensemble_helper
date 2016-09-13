@@ -5,8 +5,9 @@ import time
 
 
 class ModelVersion:
-    def __init__(self, feature_set,  scorer_name, model_name, scorer_hyperparam, model_hyperparam, module_mgr):
-        self.feature_set = feature_set  # This is a feature set
+    def __init__(self, parent_set, feature_extractor,  scorer_name, model_name, scorer_hyperparam, model_hyperparam, module_mgr):
+        self.parent_set = parent_set
+        self.feature_extractor = feature_extractor  # This is a feature set
         self.scorer_name = scorer_name  # This is a string corresponding to the name of the scorer
         self.model_name = model_name  # This is a string corresponding to the name of the model
         self.model_class = module_mgr.get_model_class(model_name)  # This is the class of the model (NOT an instance)
@@ -25,8 +26,8 @@ class ModelVersion:
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in scores as a dict.
     def score(self):
-        features = self.feature_set.get_features_array()
-        labels = self.feature_set.get_labels_array()
+        features = self.feature_extractor.get_features_array(self.parent_set)
+        labels = self.feature_extractor.get_labels_array(self.parent_set)
 
         start_time = time.time()
         scores = self.scorer_func(self.model_class(**self.model_hyperparam), features, labels, **self.scorer_hyperparam)
@@ -37,8 +38,8 @@ class ModelVersion:
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
-        features = self.feature_set.get_features_array()
-        labels = self.feature_set.get_labels_array()
+        features = self.feature_extractor.get_features_array(self.parent_set)
+        labels = self.feature_extractor.get_labels_array(self.parent_set)
 
         model = self.model_class(**self.model_hyperparam)
         start_time = time.time()
@@ -51,19 +52,20 @@ class ModelVersion:
             print "Training failed"
 
     # This method will fail if there is no model in self.trained_model
-    def predict(self, features):
+    # outside_set is a ParentSet object that may or may not have a .labels attribute
+    def predict(self, outside_set):
         if not self.trained_model:
             print "Model is untrained"
             return None
         else:
-            return self.trained_model.predict(features)
+            return self.trained_model.predict(self.feature_extractor.get_features_array(outside_set))
 
 
 if __name__ == '__main__':
     from sklearn import datasets
     import modulemanager, parameterspinner
     import parentset
-    import featureset
+    import featureextractor
     m = modulemanager.ModuleManager()
     hyperparams_model = parameterspinner.ParameterSpinner.use_default_values(m.get_model_hyperparams("Logistic Regression"))
     print hyperparams_model
@@ -73,8 +75,8 @@ if __name__ == '__main__':
     X = iris.data
     y = iris.target
     parent_set = parentset.ParentSet(X, y)
-    feature_set = featureset.FeatureSet(parent_set, range(parent_set.features.shape[1]))
-    my_class = ModelVersion(feature_set, "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
+    feature_extractor = featureextractor.FeatureExtractor(range(parent_set.features.shape[1]))
+    my_class = ModelVersion(parent_set, feature_extractor, "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
     my_class.score()
     print my_class.scores
     print my_class.trained_model
