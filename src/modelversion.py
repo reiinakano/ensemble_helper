@@ -75,8 +75,7 @@ if __name__ == '__main__':
     X = iris.data
     y = iris.target
     parent_set = parentset.ParentSet(X, y)
-    feature_extractor = featureextractor.FeatureExtractor(range(parent_set.features.shape[1]))
-    my_class = ModelVersion(parent_set, feature_extractor, "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
+    my_class = ModelVersion(parent_set, featureextractor.FeatureExtractor(), "General Cross Validation", "Logistic Regression", hyperparams_scorer, hyperparams_model, m)
     my_class.score()
     print my_class.scores
     print my_class.trained_model

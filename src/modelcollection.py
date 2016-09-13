@@ -85,11 +85,10 @@ if __name__ == "__main__":
     X = iris.data
     y = iris.target
     parent_set = parentset.ParentSet(X, y)
-    feature_extractor = featureextractor.FeatureExtractor(range(parent_set.features.shape[1]))
     my_collection = ModelCollection("Logistic Regression", parent_set, m)
     param_grid = [{"C": [0.01, 0.1, 1.0, 10.0, 100.0], "n_jobs": [1, -1]},
                   {"C": [0.00001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0], "penalty": ["l1", "l2"]}]
-    my_collection.generate_models_from_grid_hyperparam(feature_extractor, "General Cross Validation", hyperparams_scorer, param_grid)
+    my_collection.generate_models_from_grid_hyperparam(featureextractor.FeatureExtractor(), "General Cross Validation", hyperparams_scorer, param_grid)
     for key, value in sorted(my_collection.model_versions.iteritems()):
         print key, ":", value
     my_collection.score_all_models_parallel()

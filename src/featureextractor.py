@@ -16,12 +16,14 @@ class FeatureExtractor:
     # feature_indices.
     # labels contains the labels of the feature set. Since feature sets (as of now) don't remove rows from the parent
     # set, labels is equal to the labels of the parent set.
-    def __init__(self, feature_indices):
+    def __init__(self, feature_indices=None):
         self.feature_indices = feature_indices
         self.description = ""  # User supplied description e.g. "This feature set works best with logistic regression!"
 
     # This method returns the features of parent_set in scikit-learn friendly form (numpy array)
     def get_features_array(self, parent_set):
+        if not self.feature_indices:
+            return parent_set.features
         return parent_set.features[:, self.feature_indices]
 
     # This method returns the labels of parent_set in scikit-learn friendly form (numpy array)
