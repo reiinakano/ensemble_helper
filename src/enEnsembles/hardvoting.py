@@ -12,7 +12,9 @@ class HardVotingClassifier:
         self.scored = False
 
     def add_model(self, modelversion):
-        self._modelversions.add(modelversion)
+        # Make sure only model versions with same parent set are in the ensemble
+        if modelversion.parent_set is self.parent_set:
+            self._modelversions.add(modelversion)
 
     def score(self, scorer_name, scorer_hyperparam):
         pass
