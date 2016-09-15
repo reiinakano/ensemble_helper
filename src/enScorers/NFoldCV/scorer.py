@@ -10,9 +10,7 @@ import numpy as np
 
 # NOTES ABOUT THIS PARTICULAR SCORER
 # This scorer randomly chooses N-fold splits and returns the averaged performance metrics of all N folds
-def score(model, parent_set, feature_extractor, N=3, shuffle=False, calc_acc=True, calc_prc=True, calc_rec=True, calc_f1=True, calc_cm=True):
-    feature_set = feature_extractor.get_features_array(parent_set)
-    labels = feature_extractor.get_labels_array(parent_set)
+def score(model, feature_set, labels, N=3, shuffle=False, calc_acc=True, calc_prc=True, calc_rec=True, calc_f1=True, calc_cm=True):
     assert len(labels) >= N
     skf = KFold(len(labels), n_folds=N, shuffle=shuffle)
     accuracy = []
