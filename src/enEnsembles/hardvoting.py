@@ -2,21 +2,19 @@
 # ensemble.
 
 
+
 class HardVotingClassifier:
-    def __init__(self, parent_set, module_mgr):
+    def __init__(self, parent_set):
         self.parent_set = parent_set
-        self.module_mgr = module_mgr
         self.scores = {}  # scores dictionary
         self._modelversions = set([])  # contains the ModelVersions that are in the HardVotingClassifier
         self.user_notes = ""
         self.scored = False
 
     def add_model(self, modelversion):
-        # Make sure only model versions with same parent set are in the ensemble
-        if modelversion.parent_set is self.parent_set:
-            self._modelversions.add(modelversion)
+        self._modelversions.add(modelversion)
 
-    def score(self, scorer_name, scorer_hyperparam):
+    def score(self, scorer_name, scorer_hyperparam, module_mgr):
         pass
 
     def train(self):
@@ -32,6 +30,22 @@ class HardVotingClassifier:
         classifications = [modelversion.predict(outside_set) for modelversion in sorted(self._modelversions)]
         classifications = get_majority(classifications)
         return classifications
+
+
+class ForScorer:
+    def __init__(self, hardvotingclassifier):
+        self.models = []
+        self.feature_extractors = []
+        self.parent_set = hardvotingclassifier.parent_set
+        for modelversion in sorted(hardvotingclassifier._modelversions):
+            self.models.append(modelversion.model_class(**modelversion.model_hyperparam))
+            self.feature_extractors.append(modelversion.feature_extractor)
+
+    def train(self, feature_set, labels):
+        for model, feature_extractor in zip(self.models, self.feature_extractors):
+            model.train(feature_extractor.get_features_array(self.parent_set), feature_extractor.get_labels_array(self.parent_set))
+
+
 
 
 # Sample use case:

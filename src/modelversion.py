@@ -24,12 +24,10 @@ class ModelVersion:
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in self.scores[scorer_name] as a dict.
     def score(self, scorer_name, scorer_hyperparam):
-        features = self.feature_extractor.get_features_array(self.parent_set)
-        labels = self.feature_extractor.get_labels_array(self.parent_set)
         scorer_func = self.module_mgr.get_scorer_func(scorer_name)
 
         start_time = time.time()
-        scores = scorer_func(self.model_class(**self.model_hyperparam), features, labels, **scorer_hyperparam)
+        scores = scorer_func(self.model_class(**self.model_hyperparam), self.parent_set, self.feature_extractor, **scorer_hyperparam)
         self.scoring_runtime = time.time() - start_time
 
         self.scored = True

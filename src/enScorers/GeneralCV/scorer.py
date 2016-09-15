@@ -12,7 +12,9 @@ import numpy as np
 # NOTES ABOUT THIS PARTICULAR SCORER
 # This scorer is a combination of NFoldCV and StratifiedNFoldCV. Which folding mechanism to use now solely depends on
 # the additional parameter "folds". I see little reason for using either NFoldCV or StratifiedNFoldCV after this.
-def score(model, feature_set, labels, folds="stratified", N=3, shuffle=False, calc_acc=True, calc_prc=True, calc_rec=True, calc_f1=True, calc_cm=True):
+def score(model, parent_set, feature_extractor, folds="stratified", N=3, shuffle=False, calc_acc=True, calc_prc=True, calc_rec=True, calc_f1=True, calc_cm=True):
+    feature_set = feature_extractor.get_features_array(parent_set)
+    labels = feature_extractor.get_labels_array(parent_set)
     assert len(labels) >= N
     if folds == "stratified":
         skf = StratifiedKFold(labels, n_folds=N, shuffle=shuffle)
