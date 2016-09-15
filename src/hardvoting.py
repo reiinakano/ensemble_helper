@@ -8,12 +8,12 @@ class HardVotingClassifier:
     def __init__(self, parent_set):
         self.parent_set = parent_set
         self.scores = {}  # scores dictionary
-        self.basemodelversions = set([])  # contains the ModelVersions that are in the HardVotingClassifier
+        self.basemodelversions = {}  # ModelVersions are keys to the dictionary. Values are the weight.
         self.user_notes = ""
         self.scored = False
 
-    def add_model(self, modelversion):
-        self.basemodelversions.add(modelversion)
+    def add_model(self, modelversion, weight=1):
+        self.basemodelversions[modelversion] = weight
 
     def score(self, scorer_name, scorer_hyperparam, module_mgr):
         features = featureextractor.FeatureExtractor().get_features_array(self.parent_set)
@@ -27,17 +27,18 @@ class HardVotingClassifier:
         self.scores[key] = scores
 
     def train(self):
-        for modelversion in sorted(self.basemodelversions):
+        for modelversion, weight in sorted(self.basemodelversions.iteritems()):
             if not modelversion.trained_model:
                 modelversion.train()
 
     def predict(self, outside_set):
-        for modelversion in sorted(self.basemodelversions):
+        for modelversion, weight in sorted(self.basemodelversions.iteritems()):
             if not modelversion.trained_model:
                 print "Not all models in ensemble are trained."
                 return None
         classifications = [modelversion.predict(outside_set) for modelversion in sorted(self.basemodelversions)]
-        classifications = get_majority(classifications)
+        weights = [value for key, value in sorted(self.basemodelversions.iteritems())]
+        classifications = get_majority(classifications, weights)
         return classifications
 
 
@@ -46,9 +47,11 @@ class ForScorer:
     def __init__(self, hardvotingclassifier):
         self.models = []
         self.feature_extractors = []
-        for modelversion in sorted(hardvotingclassifier.basemodelversions):
+        self.weights = []
+        for modelversion, weight in sorted(hardvotingclassifier.basemodelversions.iteritems()):
             self.models.append(modelversion.model_class(**modelversion.model_hyperparam))
             self.feature_extractors.append(modelversion.feature_extractor)
+            self.weights.append(weight)
 
     def train(self, feature_set, labels):
         parent_set = parentset.ParentSet(feature_set, labels)
@@ -60,22 +63,23 @@ class ForScorer:
         classifications = []
         for model, feature_extractor in zip(self.models, self.feature_extractors):
             classifications.append(model.predict(feature_extractor.get_features_array(parent_set)))
-        classifications = get_majority(classifications)
+        classifications = get_majority(classifications, self.weights)
         return classifications
 
 
 # Sample use case:
 # classifications = [["r","y","r","r"],["y","r","r","r"],["y", "y", "y", "y",],["y","y","r","r"]]
-# get_majority(classifications) returns ["y","y","r","r"]
-def get_majority(classifications):
+# weights = [1, 1, 1, 1]
+# get_majority(classifications, weights) returns ["y","y","r","r"]
+def get_majority(classifications, weights):
     new_classifications = []
     for votes in zip(*classifications):
         my_dict = {}
-        for vote in votes:
+        for index, vote in enumerate(votes):
             if vote not in my_dict:
-                my_dict[vote] = 1
+                my_dict[vote] = weights[index]
             else:
-                my_dict[vote] += 1
+                my_dict[vote] += weights[index]
         new_classifications.append(max(my_dict, key=my_dict.get))
     return new_classifications
 
@@ -84,7 +88,8 @@ if __name__ == "__main__":
     print get_majority([["r","y","r","r"],
                         ["y","r","r","r"],
                         ["y","y","y","y"],
-                        ["y","y","r","r"]])
+                        ["y","y","r","r"]],
+                       [1, 1, 1, 1])
     import modulemanager
     from sklearn import datasets
     import parentset
