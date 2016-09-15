@@ -2,6 +2,7 @@
 # The class contains methods to score, train, and predict the model "model_name".
 import datetime
 import time
+from sklearn.pipeline import Pipeline
 
 
 class ModelVersion:
@@ -24,12 +25,13 @@ class ModelVersion:
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in self.scores[scorer_name] as a dict.
     def score(self, scorer_name, scorer_hyperparam):
-        features = self.feature_extractor.get_features_array(self.parent_set)
-        labels = self.feature_extractor.get_labels_array(self.parent_set)
+        #features = self.feature_extractor.get_features_array(self.parent_set)
+        #labels = self.feature_extractor.get_labels_array(self.parent_set)
+        model = Pipeline([("indices", self.feature_extractor), ("model", self.model_class(**self.model_hyperparam))])
         scorer_func = self.module_mgr.get_scorer_func(scorer_name)
 
         start_time = time.time()
-        scores = scorer_func(self.model_class(**self.model_hyperparam), features, labels, **scorer_hyperparam)
+        scores = scorer_func(model, self.parent_set.features, self.parent_set.labels, **scorer_hyperparam)
         self.scoring_runtime = time.time() - start_time
 
         self.scored = True
@@ -38,12 +40,10 @@ class ModelVersion:
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
-        features = self.feature_extractor.get_features_array(self.parent_set)
-        labels = self.feature_extractor.get_labels_array(self.parent_set)
+        model = Pipeline([("indices", self.feature_extractor), ("model", self.model_class(**self.model_hyperparam))])
 
-        model = self.model_class(**self.model_hyperparam)
         start_time = time.time()
-        if model.train(features, labels):
+        if model.fit(parent_set.features, parent_set.labels):
             self.runtime = time.time() - start_time
 
             self.trained_model = model
@@ -52,13 +52,13 @@ class ModelVersion:
             print "Training failed"
 
     # This method will fail if there is no model in self.trained_model
-    # outside_set is a ParentSet object that may or may not have a .labels attribute
+    # outside_set is a numpy array of features
     def predict(self, outside_set):
         if not self.trained_model:
             print "Model is untrained"
             return None
         else:
-            return self.trained_model.predict(self.feature_extractor.get_features_array(outside_set))
+            return self.trained_model.predict(outside_set)
 
 
 if __name__ == '__main__':

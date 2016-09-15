@@ -30,6 +30,14 @@ class FeatureExtractor:
     def get_labels_array(self, parent_set):
         return parent_set.labels
 
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        if not self.feature_indices:
+            return X
+        return X[:, self.feature_indices]
+
 
 if __name__ == "__main__":
     import parentset

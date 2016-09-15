@@ -19,7 +19,7 @@ def score(model, feature_set, labels, N=3, shuffle=False, calc_acc=True, calc_pr
     f1 = []
     for train, test in skf:
         X_train, X_test, y_train, y_test = feature_set[train], feature_set[test], labels[train], labels[test]
-        model.train(X_train, y_train)
+        model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         if calc_acc:
             accuracy.append(accuracy_score(y_test, prediction))

@@ -26,7 +26,7 @@ def score(model, feature_set, labels, folds="stratified", N=3, shuffle=False, ca
     f1 = []
     for train, test in skf:
         X_train, X_test, y_train, y_test = feature_set[train], feature_set[test], labels[train], labels[test]
-        model.train(X_train, y_train)
+        model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         if calc_acc:
             accuracy.append(accuracy_score(y_test, prediction))

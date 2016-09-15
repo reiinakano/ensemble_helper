@@ -110,10 +110,10 @@ if __name__ == "__main__":
     my_collection.generate_models_from_grid_hyperparam(featureextractor.FeatureExtractor(), param_grid)
     my_collection.score_all_models_parallel("General Cross Validation", hyperparams_scorer)
     hvc = HardVotingClassifier(parent_set)
-    # for key, model_version in sorted(my_collection.model_versions.iteritems()):
-    #     print model_version.scores
+    for key, model_version in sorted(my_collection.model_versions.iteritems()):
+        print model_version.scores
     for key, value in sorted(my_collection.model_versions.iteritems()):
-        if value.scores[("General Cross Validation", (3, True, True, True, True, True, 'stratified', False))]["accuracy"] > 0.83:
+        if value.scores[("General Cross Validation", (3, True, True, True, True, True, 'stratified', False))]["accuracy"] > 0.96:
             hvc.add_model(value)
     print hvc.basemodelversions
     hvc.score("General Cross Validation", hyperparams_scorer, m)
