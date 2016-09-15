@@ -11,6 +11,7 @@ class HardVotingClassifier:
         self.basemodelversions = {}  # ModelVersions are keys to the dictionary. Values are the weight.
         self.user_notes = ""
         self.scored = False
+        self.trained_model = False  # Unlike in ModelVersion instances, trained_model in ensembles are booleans.
 
     def add_model(self, modelversion, weight=1):
         self.basemodelversions[modelversion] = weight
@@ -30,6 +31,7 @@ class HardVotingClassifier:
         for modelversion, weight in sorted(self.basemodelversions.iteritems()):
             if not modelversion.trained_model:
                 modelversion.train()
+        self.trained_model = True
 
     def predict(self, outside_set):
         for modelversion, weight in sorted(self.basemodelversions.iteritems()):
@@ -43,6 +45,7 @@ class HardVotingClassifier:
 
 
 # This class is used to play nice with the syntax of the scorers.
+# This is probably the ugliest part of the code. I would love to change this someday.
 class ForScorer:
     def __init__(self, hardvotingclassifier):
         self.models = []
@@ -92,8 +95,6 @@ if __name__ == "__main__":
                        [1, 1, 1, 1])
     import modulemanager
     from sklearn import datasets
-    import parentset
-    import featureextractor
     import parameterspinner
     from modelcollection import ModelCollection
     m = modulemanager.ModuleManager()
