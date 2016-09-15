@@ -25,9 +25,7 @@ class ModelVersion:
     # This method scores "model_name" using "scorer_name" with the hyperparameters scorer_hyperparam and
     # model_hyperparam. The resulting scores from the scoring function are stored in self.scores[scorer_name] as a dict.
     def score(self, scorer_name, scorer_hyperparam):
-        #features = self.feature_extractor.get_features_array(self.parent_set)
-        #labels = self.feature_extractor.get_labels_array(self.parent_set)
-        model = Pipeline([("indices", self.feature_extractor), ("model", self.model_class(**self.model_hyperparam))])
+        model = self.return_model()
         scorer_func = self.module_mgr.get_scorer_func(scorer_name)
 
         start_time = time.time()
@@ -40,7 +38,7 @@ class ModelVersion:
 
     # This method trains the model with the FULL feature set and stores it in self.trained_model
     def train(self):
-        model = Pipeline([("indices", self.feature_extractor), ("model", self.model_class(**self.model_hyperparam))])
+        model = self.return_model()
 
         start_time = time.time()
         if model.fit(parent_set.features, parent_set.labels):
@@ -59,6 +57,10 @@ class ModelVersion:
             return None
         else:
             return self.trained_model.predict(outside_set)
+
+    # Returns instance of estimator (including pipeline containing feature extractor and base model)
+    def return_model(self):
+        return Pipeline([("indices", self.feature_extractor), ("model", self.model_class(**self.model_hyperparam))])
 
 
 if __name__ == '__main__':
