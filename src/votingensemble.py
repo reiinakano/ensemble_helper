@@ -1,3 +1,5 @@
+# This module contains the class for organizing a voting ensemble (based on votingclassifier.VotingClassifier) from
+# established model versions.
 from enEnsemble import votingclassifier
 
 
@@ -38,7 +40,7 @@ class VotingEnsemble:
         key = (scorer_name, tuple([value for key, value in sorted(scorer_hyperparam.iteritems())]))
         self.scores[key] = scores
 
-    # Returns instance of estimator
+    # Returns instance of estimator (votingclassifier.VotingClassifier instance)
     def return_model(self):
         basemodels = []
         weights = []

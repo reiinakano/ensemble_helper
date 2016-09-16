@@ -1,6 +1,9 @@
+# This class contains the class for implementing a majority voting classifier from base models (NOT model versions)
+
+
 class VotingClassifier:
     # basemodels is a list of base models composing VotingClassifier
-    def __init__(self, basemodels, weights=None, voting="hard"):
+    def __init__(self, basemodels, weights=None):
         self.basemodels = basemodels
         if weights is None:
             self.weights = [1] * len(basemodels)
@@ -10,6 +13,7 @@ class VotingClassifier:
     def fit(self, features, labels):
         for model in self.basemodels:
             model.fit(features, labels)
+        return self
 
     def predict(self, features_to_predict):
         classifications = []
