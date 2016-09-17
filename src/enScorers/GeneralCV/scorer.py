@@ -24,6 +24,7 @@ def score(model, feature_set, labels, folds="stratified", N=3, shuffle=False, ca
     precision = []
     recall = []
     f1 = []
+    confusion_matrices = []
     for train, test in skf:
         X_train, X_test, y_train, y_test = feature_set[train], feature_set[test], labels[train], labels[test]
         model.fit(X_train, y_train)
@@ -36,6 +37,8 @@ def score(model, feature_set, labels, folds="stratified", N=3, shuffle=False, ca
             recall.append(recall_score(y_test, prediction, pos_label=None, average='weighted'))
         if calc_f1:
             f1.append(f1_score(y_test, prediction, pos_label=None, average='weighted'))
+        if calc_cm:
+            confusion_matrices.append(confusion_matrix(y_test, prediction))
     metrics = {}
     if calc_acc:
         metrics["accuracy"] = np.mean(accuracy)
@@ -46,7 +49,9 @@ def score(model, feature_set, labels, folds="stratified", N=3, shuffle=False, ca
     if calc_f1:
         metrics["f1"] = np.mean(f1)
     if calc_cm:
-        metrics["confusion_matrix"] = confusion_matrix(y_test, prediction)
+        metrics["confusion_matrix"] = confusion_matrices[0]
+        for matrix in confusion_matrices[1:]:
+            metrics["confusion_matrix"] += matrix
     return metrics
 
 
