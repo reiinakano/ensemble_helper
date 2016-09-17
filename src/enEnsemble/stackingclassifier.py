@@ -4,31 +4,44 @@ import numpy as np
 
 
 class StackingClassifier:
-    def __init__(self, basemodels, secondary_model, n_folds=2, use_features_in_secondary=False):
+    def __init__(self, basemodels, secondary_model, n_folds=2, use_features_in_secondary=False, use_predict_proba=False):
         self.basemodels = basemodels
         self.secondary_model = secondary_model
         self.n_folds = n_folds
         # This boolean decides whether to include the original features (not the base model predictions) in fitting and
         # predicting with the secondary model
         self.use_features_in_secondary = use_features_in_secondary
+        self.use_predict_proba = use_predict_proba
 
     def fit(self, features, labels):
         skf = StratifiedKFold(labels, n_folds=self.n_folds)
-        all_model_predictions = np.array([]).reshape((0, features.shape[0]))
 
-        # Do Stratified CV for each model to get non-overfit predictions
-        for model in self.basemodels:
-            single_model_prediction = np.array([])
+        if not self.use_predict_proba:
+            all_model_predictions = []
+            # Do Stratified CV for each model to get non-overfit predictions
+            for model in self.basemodels:
+                single_model_prediction = np.array([])
 
-            for train_index, test_index in skf:
-                prediction = model.fit(features[train_index], labels[train_index]).predict(features[test_index])
-                single_model_prediction = np.hstack([single_model_prediction.astype(prediction.dtype), prediction])
+                for train_index, test_index in skf:
+                    prediction = model.fit(features[train_index], labels[train_index]).predict(features[test_index])
+                    single_model_prediction = np.hstack([single_model_prediction.astype(prediction.dtype), prediction])
 
-            # Stack the model's predictions in all_model_predictions
-            all_model_predictions = np.vstack((all_model_predictions.astype(single_model_prediction.dtype), single_model_prediction))
+                # Stack the model's predictions in all_model_predictions
+                all_model_predictions.append(single_model_prediction)
 
-        # Transpose model predictions (since each base model prediction is a feature
-        all_model_predictions = all_model_predictions.T
+            # Transpose model predictions (since each base model prediction is a feature
+            all_model_predictions = np.asarray(all_model_predictions).T
+
+        else:
+            all_model_predictions = np.array([]).reshape(len(labels), 0)
+            for model in self.basemodels:
+                single_model_prediction = np.array([]).reshape(0, len(set(labels)))
+
+                for train_index, test_index in skf:
+                    prediction = model.fit(features[train_index], labels[train_index]).predict_proba(features[test_index])
+                    single_model_prediction = np.vstack((single_model_prediction.astype(prediction.dtype), prediction))
+
+                all_model_predictions = np.hstack((all_model_predictions.astype(single_model_prediction.dtype), single_model_prediction))
 
         # We have to shuffle the labels in the same order as we predicted during CV
         # (we kinda shuffled them when we did Stratified CV)
@@ -79,20 +92,22 @@ if __name__ == "__main__":
     iris = datasets.load_iris()
     X = iris.data
     y = iris.target
-    clf = StackingClassifier([LogisticRegression(), RandomForestClassifier(), KNeighborsClassifier()], LogisticRegression())
+    clf = StackingClassifier([LogisticRegression(), RandomForestClassifier(n_estimators=30, random_state=32), KNeighborsClassifier()], LogisticRegression(), 2, False, True)
     clf.fit(X, y)
-    clf.predict(X)
+    #clf.predict(X)
+
+    raw_input("Done")
 
     from sklearn.cross_validation import cross_val_score
     print np.mean(cross_val_score(LogisticRegression(), X, y))
-    print np.mean(cross_val_score(RandomForestClassifier(), X, y))
+    print np.mean(cross_val_score(RandomForestClassifier(n_estimators=30), X, y))
     print np.mean(cross_val_score(KNeighborsClassifier(), X, y))
 
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
     labels = y
     model = clf
     feature_set = X
-    skf = StratifiedKFold(labels, n_folds=3)
+    skf = StratifiedKFold(labels, n_folds=10)
     accuracy = []
     precision = []
     recall = []
