@@ -16,34 +16,24 @@ class StackingClassifier:
     def fit(self, features, labels):
         skf = StratifiedKFold(labels, n_folds=self.n_folds)
 
-        if not self.use_predict_proba:
-            all_model_predictions = []
-            # Do Stratified CV for each model to get non-overfit predictions
-            for model in self.basemodels:
-                single_model_prediction = np.array([])
-
-                for train_index, test_index in skf:
-                    prediction = model.fit(features[train_index], labels[train_index]).predict(features[test_index])
-                    single_model_prediction = np.hstack([single_model_prediction.astype(prediction.dtype), prediction])
-
-                # Stack the model's predictions in all_model_predictions
-                all_model_predictions.append(single_model_prediction)
-
-            # Transpose model predictions (since each base model prediction is a feature
-            all_model_predictions = np.asarray(all_model_predictions).T
-
-        else:
-            all_model_predictions = np.array([]).reshape(len(labels), 0)
-            for model in self.basemodels:
+        all_model_predictions = np.array([]).reshape(len(labels), 0)
+        for model in self.basemodels:
+            if not self.use_predict_proba:
+                single_model_prediction = np.array([]).reshape(0, 1)
+            else:
                 single_model_prediction = np.array([]).reshape(0, len(set(labels)))
 
-                for train_index, test_index in skf:
+            for train_index, test_index in skf:
+                if not self.use_predict_proba:
+                    prediction = model.fit(features[train_index], labels[train_index]).predict(features[test_index])
+                    prediction = prediction.reshape(prediction.shape[0], 1)
+                else:
                     prediction = model.fit(features[train_index], labels[train_index]).predict_proba(features[test_index])
-                    single_model_prediction = np.vstack((single_model_prediction.astype(prediction.dtype), prediction))
+                single_model_prediction = np.vstack([single_model_prediction.astype(prediction.dtype), prediction])
 
-                all_model_predictions = np.hstack((all_model_predictions.astype(single_model_prediction.dtype), single_model_prediction))
+            all_model_predictions = np.hstack((all_model_predictions.astype(single_model_prediction.dtype), single_model_prediction))
 
-        # We have to shuffle the labels in the same order as we predicted during CV
+        # We have to shuffle the labels in the same order as we generated predictions during CV
         # (we kinda shuffled them when we did Stratified CV)
         # We also do the same with the features (we will need this only IF use_features_in_secondary is True)
         reordered_labels = np.array([]).astype(labels.dtype)
@@ -72,15 +62,19 @@ class StackingClassifier:
         return self
 
     def predict(self, features_to_predict):
-        classifications = []
+        all_model_predictions = np.array([]).reshape(len(features_to_predict), 0)
         for model in self.basemodels:
-            classifications.append(model.predict(features_to_predict))
-
-        classifications = np.asarray(classifications).T
+            if not self.use_predict_proba:
+                single_model_prediction = model.predict(features_to_predict)
+                single_model_prediction = single_model_prediction.reshape(single_model_prediction.shape[0], 1)
+            else:
+                single_model_prediction = model.predict_proba(features_to_predict)
+            all_model_predictions = np.hstack((all_model_predictions.astype(single_model_prediction.dtype), single_model_prediction))
         if not self.use_features_in_secondary:
-            return self.secondary_model.predict(classifications)
+            return self.secondary_model.predict(all_model_predictions)
         else:
-            return self.secondary_model.predict(np.hstack((features_to_predict, classifications)))
+            return self.secondary_model.predict(np.hstack((features_to_predict, all_model_predictions)))
+
 
 
 
@@ -89,14 +83,12 @@ if __name__ == "__main__":
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn import datasets
-    iris = datasets.load_iris()
+    iris = datasets.load_digits()
     X = iris.data
     y = iris.target
     clf = StackingClassifier([LogisticRegression(), RandomForestClassifier(n_estimators=30, random_state=32), KNeighborsClassifier()], LogisticRegression(), 2, False, True)
     clf.fit(X, y)
     #clf.predict(X)
-
-    raw_input("Done")
 
     from sklearn.cross_validation import cross_val_score
     print np.mean(cross_val_score(LogisticRegression(), X, y))
@@ -112,6 +104,7 @@ if __name__ == "__main__":
     precision = []
     recall = []
     f1 = []
+    confusion_matrices = []
     for train, test in skf:
         X_train, X_test, y_train, y_test = feature_set[train], feature_set[test], labels[train], labels[test]
         model.fit(X_train, y_train)
@@ -120,11 +113,14 @@ if __name__ == "__main__":
         precision.append(precision_score(y_test, prediction, pos_label=None, average='weighted'))
         recall.append(recall_score(y_test, prediction, pos_label=None, average='weighted'))
         f1.append(f1_score(y_test, prediction, pos_label=None, average='weighted'))
+        confusion_matrices.append(confusion_matrix(y_test, prediction))
     metrics = {}
     metrics["accuracy"] = np.mean(accuracy)
     metrics["precision"] = np.mean(precision)
     metrics["recall"] = np.mean(recall)
     metrics["f1"] = np.mean(f1)
-    metrics["confusion_matrix"] = confusion_matrix(y_test, prediction)
+    metrics["confusion_matrix"] = confusion_matrices[0]
+    for matrix in confusion_matrices[1:]:
+        metrics["confusion_matrix"] += matrix
     print metrics
     print accuracy
