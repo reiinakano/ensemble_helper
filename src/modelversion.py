@@ -41,7 +41,7 @@ class ModelVersion:
         model = self.return_model()
 
         start_time = time.time()
-        if model.fit(parent_set.features, parent_set.labels):
+        if model.fit(self.parent_set.features, self.parent_set.labels):
             self.runtime = time.time() - start_time
 
             self.trained_model = model
@@ -57,6 +57,13 @@ class ModelVersion:
             return None
         else:
             return self.trained_model.predict(outside_set)
+
+    def predict_proba(self, outside_set):
+        if not self.trained_model:
+            print "Model is untrained"
+            return None
+        else:
+            return self.trained_model.predict_proba(outside_set)
 
     # Returns instance of estimator (including pipeline containing feature extractor and base model)
     def return_model(self):

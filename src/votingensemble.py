@@ -27,9 +27,12 @@ class VotingEnsemble:
             if not modelversion.trained_model:
                 print "Not all models in ensemble are trained."
                 return None
-        classifications = [modelversion.predict(outside_set) for modelversion in sorted(self.basemodelversions)]
+        if not self.use_predict_proba:
+            classifications = [modelversion.predict(outside_set) for modelversion in sorted(self.basemodelversions)]
+        else:
+            classifications = [modelversion.predict_proba(outside_set) for modelversion in sorted(self.basemodelversions)]
         weights = [value for key, value in sorted(self.basemodelversions.iteritems())]
-        classifications = votingclassifier.VotingClassifier.get_majority(classifications, weights)
+        classifications = votingclassifier.VotingClassifier.get_majority(classifications, weights, sorted(list(set(self.parent_set.labels))))
         return classifications
 
     def score(self, scorer_name, scorer_hyperparam, module_mgr):
@@ -74,7 +77,7 @@ if __name__ == "__main__":
     for key, model_version in sorted(my_collection.model_versions.iteritems()):
         print model_version.scores
     for key, value in sorted(my_collection.model_versions.iteritems()):
-        if value.scores[("General Cross Validation", (3, True, True, True, True, True, 'stratified', False))]["accuracy"] > 0.9:
+        if value.scores[("General Cross Validation", (3, True, True, True, True, True, 'stratified', False))]["accuracy"] > 0.83:
             hvc.add_model(value)
     print hvc.basemodelversions
     hvc.score("General Cross Validation", hyperparams_scorer, m)
