@@ -4,8 +4,9 @@ from enEnsemble import votingclassifier
 
 
 class VotingEnsemble:
-    def __init__(self, parent_set):
+    def __init__(self, parent_set, use_predict_proba=False):
         self.parent_set = parent_set
+        self.use_predict_proba = use_predict_proba
         self.scores = {}  # scores dictionary
         self.basemodelversions = {}  # ModelVersions are keys to the dictionary. Values are the weight.
         self.user_notes = ""
@@ -47,7 +48,7 @@ class VotingEnsemble:
         for modelversion, weight in sorted(self.basemodelversions.iteritems()):
             basemodels.append(modelversion.return_model())
             weights.append(weight)
-        return votingclassifier.VotingClassifier(basemodels, weights)
+        return votingclassifier.VotingClassifier(basemodels, weights, use_predict_proba=self.use_predict_proba)
 
 
 if __name__ == "__main__":
@@ -69,7 +70,7 @@ if __name__ == "__main__":
                   {"C": [0.00001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0], "penalty": ["l1", "l2"]}]
     my_collection.generate_models_from_grid_hyperparam(featureextractor.FeatureExtractor(), param_grid)
     my_collection.score_all_models_parallel("General Cross Validation", hyperparams_scorer)
-    hvc = VotingEnsemble(parent_set)
+    hvc = VotingEnsemble(parent_set, True)
     for key, model_version in sorted(my_collection.model_versions.iteritems()):
         print model_version.scores
     for key, value in sorted(my_collection.model_versions.iteritems()):

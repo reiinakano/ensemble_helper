@@ -34,6 +34,9 @@ class ModelClass:
     def predict(self, feature_set_to_predict):
         return self.model.predict(feature_set_to_predict)
 
+    def predict_proba(self, feature_set_to_predict):
+        return self.model.predict_proba(feature_set_to_predict)
+
     # save_internals() must take a filename as parameter to determine where to store a particular model
     # The method must be able to save all information required to fully restore a particular ModelClass instance when
     # calling the corresponding restore_model() method.
